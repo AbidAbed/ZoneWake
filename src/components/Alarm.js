@@ -7,13 +7,14 @@ import NotActiveIcon from 'react-native-vector-icons/FontAwesome';
 import IconButton from './IconButton';
 import SaveIcon from 'react-native-vector-icons/Entypo';
 import CloseIcon from 'react-native-vector-icons/AntDesign';
-
-function SingleAlarm({
+import DeleteIcon from 'react-native-vector-icons/AntDesign';
+function Alarm({
   alarmLocation,
   setAlarmLocation,
   isEdit,
   saveLocation,
   closeEdit,
+  onDelete,
 }) {
   function onFavourite() {
     setAlarmLocation({
@@ -114,8 +115,15 @@ function SingleAlarm({
           />
         </>
       )}
+      {onDelete && (
+        <IconButton
+          icon={<DeleteIcon name="delete" size={30} color="red" />}
+          onClick={() => onDelete(alarmLocation)}
+          style={{}}
+        />
+      )}
     </>
   );
 }
 
-export default SingleAlarm;
+export default Alarm;

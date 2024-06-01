@@ -2,7 +2,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {useDispatch, useSelector} from 'react-redux';
 import {useEffect} from 'react';
-import Favourites from './components/Favourites';
+import Favourite from './components/Favourite';
 import Active from './components/Active';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import IconButton from './components/IconButton';
@@ -23,15 +23,14 @@ import PushNotification from 'react-native-push-notification';
 import useIsPointInRange from './hooks/useIsPointInRange';
 import useCalculateDistance from './hooks/useCalculateDistance';
 
-import {LogBox} from 'react-native';
-LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
-LogBox.ignoreAllLogs(); //Ignore all log notifications
+// import {LogBox} from 'react-native';
+// LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
+// LogBox.ignoreAllLogs(); //Ignore all log notifications
 
 const Tab = createBottomTabNavigator();
-const range = 100;
-const speed = 2 * 0.001;
+
 function App() {
-  const {path, history} = useSelector(state => state.config);
+  const {path, range, speed, history} = useSelector(state => state.config);
   const alarms = useSelector(state => state.alarms);
 
   const dispatch = useDispatch();
@@ -143,34 +142,34 @@ function App() {
     getStorage();
   }, []);
 
-  useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', backHandler);
+  // useEffect(() => {
+  //   BackHandler.addEventListener('hardwareBackPress', backHandler);
 
-    PushNotification.createChannel({
-      channelId: 'Location-Alarmer', // (required)
-      channelName: 'Locations-Alarms', // (required)
-      channelDescription: 'Notification for Location Alarms', // (optional) default: undefined.
-      importance: 4, // (optional) default: 4. Int value of the Android notification importance
-      vibrate: true, // (optional) default: true. Creates the default vibration patten if true.
-    });
+  //   PushNotification.createChannel({
+  //     channelId: 'Location-Alarmer', // (required)
+  //     channelName: 'Locations-Alarms', // (required)
+  //     channelDescription: 'Notification for Location Alarms', // (optional) default: undefined.
+  //     importance: 4, // (optional) default: 4. Int value of the Android notification importance
+  //     vibrate: true, // (optional) default: true. Creates the default vibration patten if true.
+  //   });
 
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', backHandler);
-    };
-  }, [history]);
+  //   return () => {
+  //     BackHandler.removeEventListener('hardwareBackPress', backHandler);
+  //   };
+  // }, [history]);
 
-  useEffect(() => {
-    // Start a background task that runs every 10 seconds
-    const intervalId = BackgroundTimer.setInterval(() => {
-      if (alarms.length !== 0 && alarms.find(alarm => alarm.isActive))
-        locationDetector();
-    }, 10 * 1000); // 10 seconds
+  // useEffect(() => {
+  //   // Start a background task that runs every 10 seconds
+  //   const intervalId = BackgroundTimer.setInterval(() => {
+  //     if (alarms.length !== 0 && alarms.find(alarm => alarm.isActive))
+  //       locationDetector();
+  //   }, 10 * 1000); // 10 seconds
 
-    // Clean up on component unmount
-    return () => {
-      BackgroundTimer.clearInterval(intervalId);
-    };
-  }, []);
+  //   // Clean up on component unmount
+  //   return () => {
+  //     BackgroundTimer.clearInterval(intervalId);
+  //   };
+  // }, []);
 
   return (
     <NavigationContainer>
@@ -190,10 +189,10 @@ function App() {
         )}
 
         {path !== '/mapalarm' && (
-          <Tab.Screen name="Favourites">
+          <Tab.Screen name="Favourite">
             {() => (
               <>
-                <Favourites />
+                <Favourite />
                 <IconButton
                   onClick={handleNavigateToMap}
                   icon={<AddIcon name="add-circle" color="red" size={40} />}

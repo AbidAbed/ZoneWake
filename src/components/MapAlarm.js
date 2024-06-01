@@ -8,13 +8,12 @@ import IconButton from './IconButton';
 import ConfirmIcon from 'react-native-vector-icons/AntDesign';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SingleAlarm from './SingleAlarm';
+import SingleAlarm from './Alarm';
 import useCalculateDistance from '../hooks/useCalculateDistance';
 
-const speed = 2 * 0.001;
 function MapAlarm() {
   const dispatch = useDispatch();
-  const {path, history} = useSelector(state => state.config);
+  const {path, history, speed} = useSelector(state => state.config);
   const user = useSelector(state => state.user);
   const alarms = useSelector(state => state.alarms);
 
@@ -147,7 +146,7 @@ function MapAlarm() {
       />
       <Modal visible={confirmPressed}>
         <View style={{flexDirection: 'column'}}>
-          <SingleAlarm
+          <Alarm
             alarmLocation={alarmLocation}
             setAlarmLocation={setAlarmLocation}
             isEdit={true}
