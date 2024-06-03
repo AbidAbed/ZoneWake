@@ -6,6 +6,7 @@ function useIsPointInRange(lon1, lat1, lon2, lat2, range) {
 
   const R = 6371000; // Radius of the Earth in meters
   const dLat = toRadians(lat2 - lat1);
+
   const dLon = toRadians(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +

@@ -8,7 +8,7 @@ import IconButton from './IconButton';
 import ConfirmIcon from 'react-native-vector-icons/AntDesign';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SingleAlarm from './Alarm';
+import Alarm from './Alarm';
 import useCalculateDistance from '../hooks/useCalculateDistance';
 
 function MapAlarm() {

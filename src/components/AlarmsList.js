@@ -11,7 +11,6 @@ import {FlatList, Text, View} from 'react-native';
 import Alarm from './Alarm';
 import EditIcon from 'react-native-vector-icons/AntDesign';
 import IconButton from './IconButton';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function AlarmsList({alarmsList}) {
   const dispatch = useDispatch();
@@ -25,23 +24,12 @@ function AlarmsList({alarmsList}) {
     }, {}),
   );
 
-  async function updateLocalStorage(alarms) {
-    try {
-      await AsyncStorage.setItem('Alarms', JSON.stringify(alarms));
-    } catch (err) {}
-  }
-
-  useEffect(() => {
-    setAlarms(
-      [...alarmsList].reduce((prevalarm, alarm) => {
-        return {
-          ...prevalarm,
-          [alarm.id]: {...alarm, isEdit: false},
-        };
-      }, {}),
-    );
-    if (alarmsList.length !== 0) updateLocalStorage(alarmsList);
-  }, [alarmsList]);
+  const handleInactiveNonFavoriteAlarm = useCallback(
+    item => {
+      dispatch(deleteAlarm({...item}));
+    },
+    [dispatch, alarmsList],
+  );
 
   function changeEdit(item, isEdit) {
     setAlarms({
@@ -65,16 +53,16 @@ function AlarmsList({alarmsList}) {
     });
   }
 
-  const handleInactiveNonFavoriteAlarm = useCallback(
-    item => {
-      dispatch(deleteAlarm({...item}));
-      const alarmsListWithoutDeleted = alarmsList.filter(
-        alarm => alarm.id !== item.id,
-      );
-      updateLocalStorage(alarmsListWithoutDeleted);
-    },
-    [dispatch, alarmsList],
-  );
+  useEffect(() => {
+    setAlarms(
+      [...alarmsList].reduce((prevalarm, alarm) => {
+        return {
+          ...prevalarm,
+          [alarm.id]: {...alarm, isEdit: false},
+        };
+      }, {}),
+    );
+  }, [alarmsList]);
 
   function renderItem({item}) {
     return (
