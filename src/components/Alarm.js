@@ -8,6 +8,7 @@ import IconButton from './IconButton';
 import SaveIcon from 'react-native-vector-icons/Entypo';
 import CloseIcon from 'react-native-vector-icons/AntDesign';
 import DeleteIcon from 'react-native-vector-icons/AntDesign';
+import globalStyle from '../globalStyleObject';
 function Alarm({
   alarmLocation,
   setAlarmLocation,
@@ -41,7 +42,9 @@ function Alarm({
   return (
     <>
       <View>
-        <Text>Location Name {isEdit && `(Optional)`}</Text>
+        <Text style={globalStyle.textTitle}>
+          Location Name {isEdit && `(Optional)`}
+        </Text>
         <TextInput
           placeholder="Default : Home"
           value={alarmLocation.title}
@@ -51,7 +54,9 @@ function Alarm({
       </View>
 
       <View>
-        <Text>Location Description {isEdit && `(Optional)`}</Text>
+        <Text style={globalStyle.textTitle}>
+          Location Description {isEdit && `(Optional)`}
+        </Text>
         <TextInput
           placeholder="Default : Where I live"
           value={alarmLocation.description}
@@ -61,7 +66,9 @@ function Alarm({
       </View>
 
       <View>
-        <Text>{alarmLocation.isActive ? 'Activated' : 'Not Activated'} </Text>
+        <Text style={globalStyle.textTitle}>
+          {alarmLocation.isActive ? 'Activated' : 'Not Activated'}{' '}
+        </Text>
         <IconButton
           icon={
             alarmLocation.isActive ? (
@@ -93,12 +100,18 @@ function Alarm({
         />
       </View>
       <View>
-        <Text>Estimated Distance {`(KM)`}: </Text>
-        <Text>{alarmLocation.estimatedDistance.toFixed(4)}</Text>
+        <Text style={globalStyle.textTitle}>Estimated Distance {`(KM)`}: </Text>
+        <Text style={globalStyle.textTitle}>
+          {alarmLocation.estimatedDistance.toFixed(4)}
+        </Text>
       </View>
       <View>
-        <Text>Estimated Time {`(Minutes)`}: </Text>
-        <Text>{alarmLocation.estimatedTime.toFixed(4)}</Text>
+        <Text style={globalStyle.textTitle}>
+          Estimated Time {`(Minutes)`}:{' '}
+        </Text>
+        <Text style={globalStyle.textTitle}>
+          {alarmLocation.estimatedTime.toFixed(4)}
+        </Text>
       </View>
       {isEdit && (
         <>

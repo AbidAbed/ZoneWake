@@ -30,5 +30,11 @@
     </activity>
     <meta-data android:name="com.google.android.geo.API_KEY"
       android:value="AIzaSyBgLLPjTUYGjdTC0MkGLQmCKWiZsQnrmCU" />
+
+    <service android:name="com.supersami.foregroundservice.ForegroundService"
+      android:foregroundServiceType="location"></service>
+
+    <service android:name="com.supersami.foregroundservice.ForegroundServiceTask"
+      android:foregroundServiceType="location"></service>
   </application>
 </manifest>

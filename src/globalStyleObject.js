@@ -6,5 +6,8 @@ const globalStyle = StyleSheet.create({
     bottom: 0,
     right: 0,
   },
+  textTitle: {
+    color: 'black',
+  },
 });
 export default globalStyle;

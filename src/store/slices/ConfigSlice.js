@@ -2,7 +2,8 @@ import {createSlice} from '@reduxjs/toolkit';
 
 const ConfigSlice = createSlice({
   name: 'config',
-  initialState: {path: null, history: [], range: 100, speed: 2 * 0.001},
+  //range in m , sped in m
+  initialState: {path: null, history: [], range: 1000, speed: 2 * 0.001},
   reducers: {
     changePath(state, action) {
       return {...state, path: action.payload};

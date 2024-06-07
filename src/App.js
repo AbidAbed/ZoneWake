@@ -9,8 +9,11 @@ import {
   Linking,
   Platform,
   Alert,
+  View,
 } from 'react-native';
-import Geolocation from '@react-native-community/geolocation';
+import BackgroundTimer from 'react-native-background-timer';
+import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
+
 import PushNotification from 'react-native-push-notification';
 import AddIcon from 'react-native-vector-icons/Ionicons';
 import {
@@ -35,88 +38,55 @@ const Tab = createBottomTabNavigator();
 
 function App() {
   const {path, range, speed, history} = useSelector(state => state.config);
+  const user = useSelector(state => state.user);
+
+  console.log(user);
   const alarms = useSelector(state => state.alarms);
   const dispatch = useDispatch();
 
   const [isLoaded, setIsLoaded] = useState(false);
 
-  function promptEnableLocation() {
-    if (Platform.OS === 'android') {
-      Alert.alert(
-        'Enable Location Services',
-        'This app requires location services to function properly. Please enable location services in your device settings.',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Open Settings',
-            onPress: () => {
-              Linking.openSettings();
-            },
-          },
-        ],
-        {cancelable: false},
-      );
-    } else if (Platform.OS === 'ios') {
-      Alert.alert(
-        'Enable Location Services',
-        'This app requires location services to function properly. Please enable location services in your device settings.',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Open Settings',
-            onPress: () => {
-              Linking.openURL('app-settings:');
-            },
-          },
-        ],
-        {cancelable: false},
-      );
-    }
-  }
+  const mapRef = useRef(null);
 
-  function locationDetector(position) {
+  function locationDetector(event) {
     try {
+      const position = event.nativeEvent.coordinate;
+      // const {coordinate, altitude, speed} = event.nativeEvent;
+      const speed = event.nativeEvent.coordinate.speed;
+
       dispatch(
         changeUserLocation({
-          longitude: position.coords.longitude,
-          latitude: position.coords.latitude,
+          longitude: position.longitude,
+          latitude: position.latitude,
         }),
       );
 
       AsyncStorage.setItem(
         'User-Location',
         JSON.stringify({
-          longitude: position.coords.longitude,
-          latitude: position.coords.latitude,
+          longitude: position.longitude,
+          latitude: position.latitude,
         }),
       );
 
       alarms.forEach(async activeAlarm => {
         const updatedEstimatedDistance = useCalculateDistance(
-          position.coords.latitude,
-          position.coords.longitude,
+          position.latitude,
+          position.longitude,
           activeAlarm.latitude,
           activeAlarm.longitude,
         );
-        const updatedEstimatedTime =
-          updatedEstimatedDistance / ((position.coords.speed + 1) * 60);
+        const updatedEstimatedTime = updatedEstimatedDistance / (speed * 60);
         if (activeAlarm.isActive) {
           if (
             useIsPointInRange(
-              position.coords.longitude,
-              position.coords.latitude,
+              position.longitude,
+              position.latitude,
               activeAlarm.longitude,
               activeAlarm.latitude,
               range,
             )
           ) {
-            console.log('Running alarm reached:', activeAlarm);
             PushNotification.localNotification({
               channelId: 'Zone Wake',
               title: `${activeAlarm.title} IS REACHED`,
@@ -125,8 +95,9 @@ function App() {
             dispatch(
               updateAlarm({
                 ...activeAlarm,
+                estimatedTime: updatedEstimatedTime,
+                estimatedDistance: updatedEstimatedDistance,
                 isActive: false,
-                isFavourite: true,
               }),
             );
             await AsyncStorage.setItem(
@@ -136,12 +107,30 @@ function App() {
                 {
                   ...activeAlarm,
                   isActive: false,
-                  isFavourite: true,
+                  estimatedTime: updatedEstimatedTime,
+                  estimatedDistance: updatedEstimatedDistance,
                 },
               ]),
             );
-          } else {
-            console.log('Running active alarm:', activeAlarm);
+          } else { 
+            await AsyncStorage.setItem(
+              'Alarms',
+              JSON.stringify([
+                ...alarms.filter(alarm => alarm.id !== activeAlarm.id),
+                {
+                  ...activeAlarm,
+                  estimatedTime: updatedEstimatedTime,
+                  estimatedDistance: updatedEstimatedDistance,
+                },
+              ]),
+            );
+            dispatch(
+              updateAlarm({
+                ...activeAlarm,
+                estimatedTime: updatedEstimatedTime,
+                estimatedDistance: updatedEstimatedDistance,
+              }),
+            );
             PushNotification.localNotification({
               id: activeAlarm.id,
               channelId: 'Zone Wake',
@@ -185,12 +174,6 @@ function App() {
     }
   }
 
-  async function updateLocalStorage(alarms) {
-    try {
-      await AsyncStorage.setItem('Alarms', JSON.stringify(alarms));
-    } catch (err) {}
-  }
-
   async function getStorage() {
     try {
       const alarmsString = await AsyncStorage.getItem('Alarms');
@@ -213,6 +196,14 @@ function App() {
     if (Platform.OS === 'android') {
       requestPermissions();
     }
+    // Create notification channel for alarms
+    PushNotification.createChannel({
+      channelId: 'Zone Wake',
+      channelName: 'Zone Wake',
+      channelDescription: 'Notification for Zone Wake',
+      importance: 4,
+      vibrate: true,
+    });
     getStorage();
   }, []);
 
@@ -237,58 +228,7 @@ function App() {
   }, [history]);
 
   useEffect(() => {
-    if (isLoaded) updateLocalStorage(alarms);
-
-    // Create notification channel for alarms
-    PushNotification.createChannel({
-      channelId: 'Zone Wake',
-      channelName: 'Zone Wake',
-      channelDescription: 'Notification for Zone Wake',
-      importance: 4,
-      vibrate: true,
-    });
-    Geolocation.setRNConfiguration({
-      authorizationLevel: 'auto', // Request "auto" location permission
-      skipPermissionRequests: false, // Prompt for permission if not granted
-      enableBackgroundLocationUpdates: true,
-      locationProvider: 'auto',
-    });
-
-    const watchId = Geolocation.watchPosition(
-      position => {
-        console.log('New position:', position);
-        if (alarms.length !== 0 && alarms.find(alarm => alarm.isActive)) {
-          locationDetector(position);
-        }
-      },
-      error => {
-        console.log('Geolocation error:', error);
-        promptEnableLocation();
-      },
-      {
-        distanceFilter: 1, // Minimum distance (in meters) to update the location
-        interval: 900000, // Update interval (in milliseconds), which is 15 minutes
-        fastestInterval: 300000, // Fastest update interval (in milliseconds)
-        accuracy: {
-          android: 'highAccuracy',
-          ios: 'best',
-        },
-        showsBackgroundLocationIndicator: true,
-        pausesLocationUpdatesAutomatically: false,
-        activityType: 'fitness', // Specify the activity type (e.g., 'fitness' or 'other')
-        useSignificantChanges: false,
-        deferredUpdatesInterval: 0,
-        deferredUpdatesDistance: 0,
-        foregroundService: {
-          notificationTitle: 'Tracking your location',
-          notificationBody: 'Enable location tracking to continue', // Add a notification body
-        },
-      },
-    );
-
-    return () => {
-      Geolocation.clearWatch(watchId);
-    };
+    if (isLoaded) AsyncStorage.setItem('Alarms', JSON.stringify(alarms));
   }, [alarms]);
 
   return (
@@ -298,11 +238,45 @@ function App() {
           <Tab.Screen name="Active">
             {() => (
               <>
-                <Active />
-                <IconButton
-                  onClick={handleNavigateToMap}
-                  icon={<AddIcon name="add-circle" color="green" size={40} />}
-                />
+                <View style={{flex: 2}}>
+                  <Active />
+                </View>
+                <View style={{flex: 1}}>
+                  <MapView
+                    onUserLocationChange={locationDetector}
+                    ref={mapRef}
+                    provider={PROVIDER_GOOGLE} // Use Google Maps provider
+                    style={{flex: 1}}
+                    region={{
+                      latitude: user.latitude,
+                      longitude: user.longitude,
+                      latitudeDelta: 0.0922,
+                      longitudeDelta: 0.0421,
+                    }}
+                    showsUserLocation={true}
+                    userLocationUpdateInterval={100000 / 2}>
+                    {alarms.map(alarm => {
+                      if (alarm.isActive) {
+                        return (
+                          <Marker
+                            draggable
+                            key={alarm.id}
+                            coordinate={{
+                              latitude: alarm.latitude,
+                              longitude: alarm.longitude,
+                            }}
+                            title={alarm.title}
+                            description={alarm.description}
+                          />
+                        );
+                      }
+                    })}
+                  </MapView>
+                  <IconButton
+                    onClick={handleNavigateToMap}
+                    icon={<AddIcon name="add-circle" color="green" size={40} />}
+                  />
+                </View>
               </>
             )}
           </Tab.Screen>
@@ -331,6 +305,7 @@ function App() {
             )}
           </Tab.Screen>
         )}
+
         {path === '/mapalarm' && (
           <Tab.Screen name="Choose location">
             {() => (
