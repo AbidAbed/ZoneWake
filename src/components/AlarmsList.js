@@ -12,7 +12,7 @@ import Alarm from './Alarm';
 import EditIcon from 'react-native-vector-icons/AntDesign';
 import IconButton from './IconButton';
 
-function AlarmsList({alarmsList}) {
+function AlarmsList({alarmsList, itemsName}) {
   const dispatch = useDispatch();
 
   const [alarms, setAlarms] = useState(
@@ -66,7 +66,7 @@ function AlarmsList({alarmsList}) {
 
   function renderItem({item}) {
     return (
-      <View>
+      <View style={{padding: '5%'}}>
         <Alarm
           alarmLocation={item}
           setAlarmLocation={updateItem}
@@ -79,24 +79,43 @@ function AlarmsList({alarmsList}) {
           }
           saveLocation={() => saveItemUpdated(item, false)}
           key={item.id}
-          onDelete={handleInactiveNonFavoriteAlarm}
-        />
-        {!alarms[item.id]?.isEdit && (
-          <IconButton
-            icon={<EditIcon name="edit" size={30} color="gray" />}
-            onClick={() => changeEdit(item, true)}
-            style={{}}
-          />
-        )}
+          onDelete={handleInactiveNonFavoriteAlarm}>
+          {!alarms[item.id]?.isEdit && (
+            <IconButton
+              icon={<EditIcon name="edit" size={30} color="#c6d9cd" />}
+              onClick={() => changeEdit(item, true)}
+              style={{}}
+            />
+          )}
+        </Alarm>
       </View>
     );
   }
   return (
-    <View>
-      <FlatList
-        data={Object.entries(alarms).map(alarm => alarm[1])}
-        renderItem={renderItem}
-      />
+    <View style={{flex: 1}}>
+      {Object.entries(alarms).length === 0 ? (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            textAlign: 'center',
+            padding: '2%',
+          }}>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: 'white',
+            }}>
+            {itemsName} is empty , press + sign to add {itemsName}
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={Object.entries(alarms).map(alarm => alarm[1])}
+          renderItem={renderItem}
+        />
+      )}
     </View>
   );
 }

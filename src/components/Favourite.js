@@ -16,6 +16,8 @@ function Favourite() {
       dispatch(pushHistory('/favourites'));
     }, []),
   );
-  return <AlarmsList alarmsList={favouriteAlarms} />;
+  return (
+    <AlarmsList alarmsList={favouriteAlarms} itemsName="Favourite Alarms" />
+  );
 }
 export default Favourite;

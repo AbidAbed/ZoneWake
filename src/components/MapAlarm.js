@@ -10,6 +10,7 @@ import ConfirmIcon from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Alarm from './Alarm';
 import useCalculateDistance from '../hooks/useCalculateDistance';
+import globalStyle from '../globalStyleObject';
 
 function MapAlarm() {
   const dispatch = useDispatch();
@@ -31,13 +32,14 @@ function MapAlarm() {
       user.longitude,
     ),
     estimatedTime:
-      useCalculateDistance(
+      (useCalculateDistance(
         user.latitude,
         user.longitude,
         user.latitude,
         user.longitude,
-      ) /
-      (speed * 60),
+      ) *
+        1000) /
+      ((speed + 0.000001) * 60),
   });
 
   const [confirmPressed, setConfirmPressed] = useState(false);
@@ -58,13 +60,14 @@ function MapAlarm() {
           user.longitude,
         ),
         estimatedTime:
-          useCalculateDistance(
+          (useCalculateDistance(
             alarmLocation.latitude,
             alarmLocation.longitude,
             user.latitude,
             user.longitude,
-          ) /
-          (speed * 60),
+          ) *
+            1000) /
+          ((speed + 0.000001) * 60),
       };
 
       if (alarmLocation.title === '') {
@@ -88,7 +91,7 @@ function MapAlarm() {
 
       dispatch(changePath('/active'));
     } catch (err) {
-      //console.log(err);
+      //////console.log(err);
     }
   }
 
@@ -105,13 +108,14 @@ function MapAlarm() {
         user.longitude,
       ),
       estimatedTime:
-        useCalculateDistance(
+        (useCalculateDistance(
           coordinate.latitude,
           coordinate.longitude,
           user.latitude,
           user.longitude,
-        ) /
-        (speed * 60),
+        ) *
+          1000) /
+        ((speed + 0.000001) * 60),
     });
   }
 
@@ -119,6 +123,7 @@ function MapAlarm() {
     <View style={{flex: 1}}>
       <MapView
         provider={PROVIDER_GOOGLE} // Use Google Maps provider
+        customMapStyle={globalStyle.mapCustomStyle}
         style={{flex: 1}}
         region={{
           latitude: user.latitude,
@@ -141,11 +146,13 @@ function MapAlarm() {
         />
       </MapView>
       <IconButton
-        icon={<ConfirmIcon name="checkcircle" color="green" size={40} />}
+        icon={<ConfirmIcon name="checkcircle" color="#c6d9cd" size={30} />}
         onClick={handleConfirmLocation}
+        style={{padding: '2%', alignSelf: 'flex-end'}}
       />
-      <Modal visible={confirmPressed}>
-        <View style={{flexDirection: 'column'}}>
+      {/* <Modal visible={confirmPressed}> */}
+      {confirmPressed && (
+        <View style={{flexDirection: 'column', width: '100%', height: '100%'}}>
           <Alarm
             alarmLocation={alarmLocation}
             setAlarmLocation={setAlarmLocation}
@@ -154,7 +161,9 @@ function MapAlarm() {
             closeEdit={() => setConfirmPressed(false)}
           />
         </View>
-      </Modal>
+      )}
+
+      {/* </Modal> */}
     </View>
   );
 }

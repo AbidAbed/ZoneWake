@@ -16,6 +16,6 @@ function Active() {
       dispatch(pushHistory('/active'));
     }, []),
   );
-  return <AlarmsList alarmsList={activeAlarms} />;
+  return <AlarmsList alarmsList={activeAlarms} itemsName="Active Alarms" />;
 }
 export default Active;

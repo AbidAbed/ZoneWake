@@ -14,6 +14,6 @@ function History() {
       dispatch(pushHistory('/history'));
     }, []),
   );
-  return <AlarmsList alarmsList={alarms} />;
+  return <AlarmsList alarmsList={alarms} itemsName="History Alarms" />;
 }
 export default History;
